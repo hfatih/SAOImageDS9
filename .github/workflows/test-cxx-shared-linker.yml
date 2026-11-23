@@ -1,0 +1,28 @@
+name: DS9 issue 208 Linux verification
+on:
+  push:
+    branches: [ci/208-linux-linker]
+permissions:
+  contents: read
+jobs:
+  shared-linker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 3
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libx11-dev zlib1g-dev libxml2-dev libxft-dev libxcursor-dev libxt-dev zip
+      - name: Build and load before and after libraries
+        id: verify
+        run: bash .github/scripts/test-cxx-shared-linker.sh "$GITHUB_WORKSPACE"
+      - name: Preserve build evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-208-linux-evidence
+          path: ${{ runner.temp }}/ds9-208.*/logs/
+          retention-days: 7
