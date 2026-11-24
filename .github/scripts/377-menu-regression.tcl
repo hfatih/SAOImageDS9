@@ -27,7 +27,7 @@ proc leafEntries {menu} {
     for {set ii 0} {$ii <= $last} {incr ii} {
         if {[$menu type $ii] eq {cascade}} {
             set result [concat $result [leafEntries [$menu entrycget $ii -menu]]]
-        } else {lappend result [list $menu $ii]}
+        } elseif {[$menu type $ii] ni {separator tearoff}} {lappend result [list $menu $ii]}
     }
     return $result
 }

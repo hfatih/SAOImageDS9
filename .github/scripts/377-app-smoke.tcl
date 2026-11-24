@@ -54,9 +54,13 @@ if {[catch {
     set firstLabel [$colors entrycget 0 -label]
     checkMenu [expr {$firstLabel ne { - } && $firstLabel ne {}}] {Actual region-color group label is blank}
     lassign [lindex [menuLeaves $colors] end] widget index
-    set expectedColor [$widget entrycget $index -label]
+    set command [$widget entrycget $index -command]
+    if {[lindex $command 0] eq {AquaMenuDefer}} {set command [lindex $command 1]}
+    checkMenu [expr {[lindex $command 0] eq {IconMenuButtonCmd}}] {Unexpected actual region-color callback}
+    set expectedColor [lindex $command 3]
     checkMenu [expr {[$widget entrycget $index -image] ne {}}] {Actual region-color image was lost}
     $widget invoke $index
+    checkMenu [expr {$marker(color) eq $expectedColor}] {Actual region-color callback selected the wrong color}
     menuReport "PASS actual region-color callback: $marker(color), group=$firstLabel"
 
     set view(icons) 1
