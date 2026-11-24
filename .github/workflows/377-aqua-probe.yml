@@ -1,0 +1,21 @@
+name: DS9 issue 377 native Aqua capability
+on:
+  push:
+    branches: [ci/377-aqua-probe]
+permissions:
+  contents: read
+jobs:
+  native-aqua:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Build bundled Tcl-Tk and execute native Aqua menu checks
+        run: bash .github/scripts/377-aqua-probe.sh
+      - name: Preserve actual Aqua execution evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-377-aqua-probe
+          path: ${{ runner.temp }}/ds9-377-aqua/logs/
+          retention-days: 7
