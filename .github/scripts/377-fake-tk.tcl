@@ -59,7 +59,11 @@ proc FakeMenu {name method args} {
         }
         index {
             set index [FakeIndex $name [lindex $args 0]]
-            if {$index < 0} {return none}
+            if {$index < 0} {
+                global ds9
+                if {$ds9(wm) eq {aqua}} {return {}}
+                return none
+            }
             return $index
         }
         type {return [dict get [lindex $fakeMenus($name) [FakeIndex $name [lindex $args 0]]] type]}

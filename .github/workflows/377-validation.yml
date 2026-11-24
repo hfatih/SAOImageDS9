@@ -1,7 +1,7 @@
 name: DS9 issue 377 menu validation
 on:
   push:
-    branches: [ci/377-menu-validation]
+    branches: [ci/377-full-build]
     paths: [ds9/**]
 permissions:
   contents: read

@@ -9,7 +9,7 @@ proc checkMenu {value description} {
 proc menuLeaves {m} {
     set leaves {}
     set last [$m index end]
-    if {$last eq {none}} {return $leaves}
+    if {$last in {{} none}} {return $leaves}
     for {set ii 0} {$ii <= $last} {incr ii} {
         if {[$m type $ii] eq {cascade}} {
             set leaves [concat $leaves [menuLeaves [$m entrycget $ii -menu]]]

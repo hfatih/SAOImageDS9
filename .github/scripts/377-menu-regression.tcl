@@ -23,7 +23,7 @@ proc equal {actual expected label} {
 proc leafEntries {menu} {
     set result {}
     set last [$menu index end]
-    if {$last eq {none}} {return $result}
+    if {$last in {{} none}} {return $result}
     for {set ii 0} {$ii <= $last} {incr ii} {
         if {[$menu type $ii] eq {cascade}} {
             set result [concat $result [leafEntries [$menu entrycget $ii -menu]]]
@@ -211,7 +211,7 @@ foreach entry [leafEntries .swatches.color.test] {
 destroy .swatches
 destroy .dialog
 newMenu .properties
-equal [.properties index end] none {Destroy and recreate is clean}
+equal [expr {[.properties index end] in {{} none}}] 1 {Destroy and recreate is clean}
 destroy .properties
 puts "PASS $passed assertions on $ds9(wm)"
 if {![info exists env(DS9_FAKE_TK)]} {exit 0}
