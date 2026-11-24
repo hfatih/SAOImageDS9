@@ -16,7 +16,7 @@ run_logged() {
         return "$code"
     fi
 }
-git -C "$repo" archive 5a56226230ed24fe75cca9806ac9526223aba7fc tcl9.0 tk9.0 tclconfig ast funtools |
+git -C "$repo" archive 5a56226230ed24fe75cca9806ac9526223aba7fc tcl9.0 tk9.0 tclconfig ast funtools tkwin |
     tar -x -C "$work/deps"
 cd "$work/deps/tcl9.0/win"
 run_logged "$logs/tcl.log" bash configure --prefix="$prefix" --enable-64bit --enable-shared
@@ -35,6 +35,7 @@ run_logged "$logs/ast-headers.log" bash configure --prefix="$prefix" \
     star_cv_cnf_trail_type=long star_cv_cnf_f2c_compatible=no
 run_logged "$logs/ast-headers.log" make -o configure -o aclocal.m4 -o Makefile.in ast.h
 cp ast.h src/grf.h src/grf3d.h "$prefix/include/"
+cp "$work/deps/tkwin/win32lib.h" "$work/deps/tkwin/tkwin32.h" "$prefix/include/"
 cd "$work/deps/funtools"
 run_logged "$logs/funtools-headers.log" bash configure --prefix="$prefix" --host=x86_64-w64-mingw32 --disable-shared CC=x86_64-w64-mingw32-gcc CFLAGS='-g -O2 -std=gnu90 -w'
 cp funtools.h "$prefix/include/"
@@ -86,6 +87,7 @@ for variant in before after; do
         done < <(find . -maxdepth 1 -name '*.dll' -print0)
     done
 done
+awk -F '\t' 'NR > 1 && $4 != $5 { bad=1 } END { exit bad }' "$logs/results.tsv"
 uname -a > "$logs/environment.txt"
 x86_64-w64-mingw32-gcc --version >> "$logs/environment.txt"
 echo 'Windows source/link attempts recorded; nonzero link results are evidence, not successful shared-stack builds.'
