@@ -18,7 +18,7 @@ run_logged() {
         return "$code"
     fi
 }
-git archive "$ref" tcl9.0 tk9.0 tclconfig ast vector fitsy tkblt tclfitsy tkmpeg tksao |
+git archive "$ref" tcl9.0 tk9.0 tclconfig ast funtools vector fitsy tkblt tclfitsy tkmpeg tksao |
     tar -x -C "$work/source"
 cd "$work/source/tcl9.0/unix"
 run_logged "$logs/tcl.log" bash configure --prefix="$prefix" --enable-shared
@@ -35,6 +35,10 @@ run_logged "$logs/ast-headers.log" bash configure --prefix="$prefix" \
     star_cv_cnf_trail_type=long star_cv_cnf_f2c_compatible=no
 run_logged "$logs/ast-headers.log" make -o configure -o aclocal.m4 -o Makefile.in ast.h
 cp ast.h src/grf.h src/grf3d.h "$prefix/include/"
+# fitsy/hist.C uses the actual configured Funtools public headers.
+cd "$work/source/funtools"
+run_logged "$logs/funtools-headers.log" bash configure --prefix="$prefix" --disable-shared CFLAGS='-g -O2 -std=gnu90 -w'
+cp funtools.h filter/*.h util/*.h fitsy/*.h wcs/*.h "$prefix/include/"
 for package in vector fitsy tkblt tclfitsy tkmpeg tksao; do
     cd "$work/source/$package"
     run_logged "$logs/$package-configure.log" env CC=gcc CXX=g++ bash configure \
