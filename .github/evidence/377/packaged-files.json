@@ -1,0 +1,46 @@
+[
+  {
+    "file": "ds9/library/bin.tcl",
+    "source_and_packaged_sha256": "186e373615cde0b3004c054a3b17437561a436b47c472e1a7f458f443a41caed"
+  },
+  {
+    "file": "ds9/library/cat.tcl",
+    "source_and_packaged_sha256": "d154785e4049385af9786f275e4366d8bdc4e15d4b2c3f3093f950b9f953369d"
+  },
+  {
+    "file": "ds9/library/catplot.tcl",
+    "source_and_packaged_sha256": "1fd0a7e0987655d813b66ef55b98a9f92dfb240911ef36179ed0a2e54721075f"
+  },
+  {
+    "file": "ds9/library/colorbar.tcl",
+    "source_and_packaged_sha256": "90bb2ade0ab372f6130fc806d3c49305bbcdd69cd27f17f5e04626d505966b89"
+  },
+  {
+    "file": "ds9/library/frame.tcl",
+    "source_and_packaged_sha256": "cff524e9b85c14972aa54905e03dca80e59a07781059097873233eb82ca59bd0"
+  },
+  {
+    "file": "ds9/library/iconsleft.tcl",
+    "source_and_packaged_sha256": "de90895d27c47ff706f08354e148b2b04002d82734a20484c1a760123c27d429"
+  },
+  {
+    "file": "ds9/library/mcolor.tcl",
+    "source_and_packaged_sha256": "c1c93d46d497c59e7487b19c1b8b63741b3a5073a4b9709bb8f01cc3b24316a7"
+  },
+  {
+    "file": "ds9/library/menu.tcl",
+    "source_and_packaged_sha256": "04a349008b2a42a194468840f39d73b1be7c0ee608e879e5535a475c176649f0"
+  },
+  {
+    "file": "ds9/library/mframe.tcl",
+    "source_and_packaged_sha256": "65cc8041b1ddf8ff6d4d93263e3d0faaac2804a68b9dd2a428936b6099b16516"
+  },
+  {
+    "file": "ds9/library/prism.tcl",
+    "source_and_packaged_sha256": "061777c352e208bf0d8cec9e0b53c744f05e442a9aed4d0eb7d090dec6a4d607"
+  },
+  {
+    "file": "ds9/library/table.tcl",
+    "source_and_packaged_sha256": "79c18b6a9ece54a8da0b92242c118d6ba637a7171bbabf1550e006f7224c2e30"
+  }
+]

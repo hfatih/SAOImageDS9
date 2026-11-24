@@ -1,0 +1,7 @@
+START Tcl=9.0.4 Tk=9.0.4 wm=aqua
+PASS actual DS9 frame grouping, goto callback, checkbox and enabled state
+PASS actual region-color callback: deeppink, group=red - peachpuff
+PASS actual nested colormap swatches: 80
+PASS actual frame deletion and short-menu restoration
+PASS actual DS9 Aqua: 208 assertions
+READY_FOR_CAPTURE
