@@ -205,15 +205,15 @@ jobs:
             zlib0
             zstd
       - name: Configure Cygwin drive mounts
-        shell: bash -eo pipefail {0}
+        shell: bash -o igncr -eo pipefail {0}
         run: echo 'none /cygdrive cygdrive binary,posix=0,noacl 0 0' >> /etc/fstab
       - name: Try all six original shared-library source lists before and after
         if: matrix.mode == 'shared-sources'
-        shell: bash -eo pipefail {0}
+        shell: bash -o igncr -eo pipefail {0}
         run: bash .github/scripts/208-windows-ci.sh
       - name: Build the normal Windows application
         if: matrix.mode == 'normal-build'
-        shell: bash -eo pipefail {0}
+        shell: bash -o igncr -eo pipefail {0}
         run: |
           chmod +x win/configure
           ./win/configure
@@ -224,6 +224,22 @@ jobs:
             tail -n 80 windows-normal-build.log
             exit 1
           fi
+      - name: Run the native Windows application smoke test
+        if: matrix.mode == 'normal-build'
+        shell: pwsh
+        run: |
+          $env:DS9_SMOKE_RESULT = Join-Path $env:RUNNER_TEMP 'ds9-smoke-result.txt'
+          $program = (Resolve-Path 'bin/SAOImageDS9/ds9.exe').Path
+          $script = (Resolve-Path '.github/scripts/208-platform-smoke.tcl').Path
+          $process = Start-Process -FilePath $program -ArgumentList @('-prefs', 'no', '-source', ('"' + $script + '"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput windows-smoke-stdout.log -RedirectStandardError windows-smoke-stderr.log
+          if (-not $process.WaitForExit(60000)) {
+            $process.Kill()
+            throw 'DS9 did not finish its smoke test within 60 seconds'
+          }
+          if ($process.ExitCode -ne 0) { throw "DS9 exit code: $($process.ExitCode)" }
+          $result = Get-Content -LiteralPath $env:DS9_SMOKE_RESULT -Raw
+          Write-Output $result
+          if (-not $result.StartsWith('PASS ')) { throw 'DS9 smoke test failed' }
       - name: Preserve evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -232,5 +248,7 @@ jobs:
           path: |
             ${{ runner.temp }}/ds9-208-windows/logs/
             windows-normal-build.log
+            windows-smoke-*.log
+            ${{ runner.temp }}/ds9-smoke-result.txt
             bin/SAOImageDS9/
           retention-days: 7
