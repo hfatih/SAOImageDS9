@@ -38,7 +38,10 @@ cp ast.h src/grf.h src/grf3d.h "$prefix/include/"
 # fitsy/hist.C uses the actual configured Funtools public headers.
 cd "$work/source/funtools"
 run_logged "$logs/funtools-headers.log" bash configure --prefix="$prefix" --disable-shared CFLAGS='-g -O2 -std=gnu90 -w'
-cp funtools.h filter/*.h util/*.h fitsy/*.h wcs/*.h "$prefix/include/"
+cp funtools.h "$prefix/include/"
+for directory in wcs filter util fitsy; do
+    cp "$directory"/*.h "$prefix/include/"
+done
 for package in vector fitsy tkblt tclfitsy tkmpeg tksao; do
     cd "$work/source/$package"
     run_logged "$logs/$package-configure.log" env CC=gcc CXX=g++ bash configure \
