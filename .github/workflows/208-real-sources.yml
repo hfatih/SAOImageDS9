@@ -1,0 +1,31 @@
+name: DS9 issue 208 actual-source Linux verification
+on:
+  push:
+    branches: [ci/208-real-sources]
+permissions:
+  contents: read
+jobs:
+  shared-sources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [before, after]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libx11-dev zlib1g-dev libxml2-dev libxft-dev libxcursor-dev libxt-dev zip
+      - name: Build all six packages from their actual sources
+        run: bash .github/scripts/208-real-sources.sh "${{ matrix.variant }}"
+      - name: Preserve compiler, dependency and loader evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-208-real-${{ matrix.variant }}
+          path: ${{ runner.temp }}/ds9-208-real-${{ matrix.variant }}/logs/
+          retention-days: 14
