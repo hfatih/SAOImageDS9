@@ -1,0 +1,68 @@
+name: DS9 issue 377 menu validation
+on:
+  push:
+    branches: [ci/377-menu-validation]
+permissions:
+  contents: read
+jobs:
+  native-menu-regression:
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Build bundled Tcl-Tk and test real native menus
+        run: bash .github/scripts/377-native-regression.sh
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: issue-377-native-menu-tests
+          path: ${{ runner.temp }}/ds9-377-aqua/logs/
+          retention-days: 7
+  linux-menu-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - run: sudo apt-get update && sudo apt-get install -y tk xvfb
+      - name: Verify unchanged native X11 menus
+        run: xvfb-run -a wish .github/scripts/377-menu-regression.tcl "$PWD"
+  full-ds9-aqua:
+    runs-on: macos-15-intel
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Install upstream dependencies
+        env:
+          DS9_BUILD_OS: macos-15-intel
+        run: source .github/scripts/setup.sh
+      - name: Configure actual DS9
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '12.0'
+          CFLAGS: -mmacosx-version-min=12.0
+          CXXFLAGS: -mmacosx-version-min=12.0
+          LDFLAGS: -mmacosx-version-min=12.0
+        run: macos/configure
+      - name: Build actual DS9 application
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '12.0'
+          CFLAGS: -mmacosx-version-min=12.0
+          CXXFLAGS: -mmacosx-version-min=12.0
+          LDFLAGS: -mmacosx-version-min=12.0
+        run: |
+          if make JOBS=4 > ds9-377-build.log 2>&1; then
+            test -s bin/SAOImageDS9.app/Contents/MacOS/ds9
+          else
+            tail -n 80 ds9-377-build.log
+            exit 1
+          fi
+      - name: Exercise actual frame, state, color, and swatch flows in Aqua
+        run: python3 .github/scripts/377-run-app.py
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: issue-377-actual-ds9
+          path: |
+            ${{ runner.temp }}/ds9-377-app/
+            ds9-377-build.log
+            bin/SAOImageDS9.app/
+          retention-days: 7
