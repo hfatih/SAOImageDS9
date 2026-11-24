@@ -32,7 +32,7 @@ jobs:
           set -euo pipefail
           bash unix/configure --with-arch=ubuntu-24.04 > "$RUNNER_TEMP/ds9-258-evidence/configure.log" 2>&1
           make JOBS=2 > "$RUNNER_TEMP/ds9-258-evidence/build.log" 2>&1 || { tail -n 100 "$RUNNER_TEMP/ds9-258-evidence/build.log"; exit 1; }
-          xvfb-run -a ./bin/ds9 -help > "$RUNNER_TEMP/ds9-258-evidence/help.log" 2>&1
+          timeout 45 xvfb-run -a ./bin/ds9 -prefs no -version > "$RUNNER_TEMP/ds9-258-evidence/version.log" 2>&1
       - name: Compare actual GIF frames with equivalent explicit-list scripts
         run: |
           set -euo pipefail
