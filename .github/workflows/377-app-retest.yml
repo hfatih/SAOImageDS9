@@ -1,0 +1,58 @@
+name: DS9 issue 377 final Aqua application checks
+on:
+  push:
+    branches: [ci/377-menu-validation]
+    paths:
+      - .github/workflows/377-app-retest.yml
+      - .github/scripts/377-restore-app.py
+      - .github/scripts/377-app-smoke.tcl
+      - .github/scripts/377-run-app.py
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-ds9-final:
+    runs-on: macos-15-intel
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+      - name: Wait for the already-running full source build artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time, urllib.request
+          endpoint = os.environ['GITHUB_API_URL'] + '/repos/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/45438671421/artifacts'
+          deadline = time.monotonic() + 1200
+          while time.monotonic() < deadline:
+              request = urllib.request.Request(endpoint, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'})
+              with urllib.request.urlopen(request) as response:
+                  artifacts = json.load(response)['artifacts']
+              if any(a['name'] == 'issue-377-actual-ds9' and not a['expired'] for a in artifacts):
+                  print('Full DS9 application artifact is available')
+                  break
+              print('Waiting for the full source build to upload its application', flush=True)
+              time.sleep(30)
+          else:
+              raise TimeoutError('Full application artifact was not available within 20 minutes')
+          PY
+      - uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: 45438671421
+          name: issue-377-actual-ds9
+          path: compiled
+      - name: Package final Tcl files exactly as the application build does
+        run: python3 .github/scripts/377-restore-app.py
+      - name: Run final tests in the actual Aqua application and capture its native menu
+        run: python3 .github/scripts/377-run-app.py
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: issue-377-final-ds9
+          path: |
+            ${{ runner.temp }}/ds9-377-app/
+            377-packaged-files.json
+          retention-days: 7
