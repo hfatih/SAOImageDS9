@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          fetch-depth: 3
+          fetch-depth: 0
       - name: Install Linux build and test dependencies
         run: |
           sudo apt-get update
@@ -31,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           bash unix/configure --with-arch=ubuntu-24.04 > "$RUNNER_TEMP/ds9-258-evidence/configure.log" 2>&1
-          make JOBS=2 > "$RUNNER_TEMP/ds9-258-evidence/build.log" 2>&1 || { tail -n 100 "$RUNNER_TEMP/ds9-258-evidence/build.log"; exit 1; }
+          make JOBS=4 > "$RUNNER_TEMP/ds9-258-evidence/build.log" 2>&1 || { tail -n 100 "$RUNNER_TEMP/ds9-258-evidence/build.log"; exit 1; }
           timeout 45 xvfb-run -a ./bin/ds9 -prefs no -version > "$RUNNER_TEMP/ds9-258-evidence/version.log" 2>&1
       - name: Compare actual GIF frames with equivalent explicit-list scripts
         run: |
