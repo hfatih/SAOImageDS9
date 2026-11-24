@@ -1,0 +1,48 @@
+name: DS9 issue 258 Linux verification
+on:
+  push:
+    branches: [ci/258-linux-movie-ranges]
+permissions:
+  contents: read
+jobs:
+  movie-ranges:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 3
+      - name: Install Linux build and test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y automake autoconf build-essential libx11-dev zlib1g-dev libxml2-dev libxslt1-dev libxft-dev libxcursor-dev libxt-dev zip tcl8.6-dev tk8.6-dev python3-tk python3-pil xvfb xauth
+      - name: Verify pre-change failure and post-change headless tests
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ds9-258-evidence"
+          git show 5a56226230ed24fe75cca9806ac9526223aba7fc:ds9/library/movie.tcl > "$RUNNER_TEMP/old-movie.tcl"
+          if python3 .github/scripts/test_movie_ranges.py "$RUNNER_TEMP/old-movie.tcl" > "$RUNNER_TEMP/ds9-258-evidence/before.log" 2>&1; then
+            echo 'Regression test unexpectedly passed before the feature'
+            exit 1
+          fi
+          grep -q 'FAILED (failures=' "$RUNNER_TEMP/ds9-258-evidence/before.log"
+          python3 .github/scripts/test_movie_ranges.py ds9/library/movie.tcl 2>&1 | tee "$RUNNER_TEMP/ds9-258-evidence/after.log"
+      - name: Build complete DS9 on Linux
+        run: |
+          set -euo pipefail
+          bash unix/configure --with-arch=ubuntu-24.04 > "$RUNNER_TEMP/ds9-258-evidence/configure.log" 2>&1
+          make JOBS=2 > "$RUNNER_TEMP/ds9-258-evidence/build.log" 2>&1 || { tail -n 100 "$RUNNER_TEMP/ds9-258-evidence/build.log"; exit 1; }
+          xvfb-run -a ./bin/ds9 -help > "$RUNNER_TEMP/ds9-258-evidence/help.log" 2>&1
+      - name: Compare actual GIF frames with equivalent explicit-list scripts
+        run: |
+          set -euo pipefail
+          xvfb-run -a python3 .github/scripts/test_movie_ranges_live.py 2>&1 | tee "$RUNNER_TEMP/ds9-258-evidence/live.log"
+      - name: Preserve test evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-258-linux-evidence
+          path: |
+            ${{ runner.temp }}/ds9-258-evidence/
+            ${{ runner.temp }}/ds9-258-live/
+          retention-days: 7
