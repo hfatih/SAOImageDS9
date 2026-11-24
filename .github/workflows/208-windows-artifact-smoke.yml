@@ -1,0 +1,40 @@
+name: DS9 issue 208 native Windows startup
+on:
+  push:
+    branches: [ci/208-platform-validation]
+    paths:
+      - .github/scripts/208-windows-artifact-smoke.ps1
+      - .github/scripts/208-platform-smoke.tcl
+      - .github/workflows/208-windows-artifact-smoke.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  native-startup:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Reuse the original successful full Windows build
+        uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: 45415561391
+          name: issue-208-windows-normal-build
+          path: compiled
+      - name: Run original Windows executable with a portable Tcl source path
+        shell: pwsh
+        run: |
+          $programs = @(Get-ChildItem -LiteralPath compiled -Recurse -Filter ds9.exe)
+          if ($programs.Count -ne 1) { throw 'Expected exactly one DS9 executable' }
+          Get-FileHash -LiteralPath $programs[0].FullName -Algorithm SHA256
+          & .github/scripts/208-windows-artifact-smoke.ps1 -PackageDirectory $programs[0].DirectoryName
+      - name: Preserve startup evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-208-windows-native-startup
+          path: |
+            windows-artifact-smoke-*.log
+            ${{ runner.temp }}/ds9-artifact-smoke-result.txt
+          retention-days: 7
