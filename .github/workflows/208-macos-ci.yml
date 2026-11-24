@@ -1,0 +1,64 @@
+name: DS9 issue 208 macOS verification
+on:
+  push:
+    branches: [ci/208-platform-validation]
+permissions:
+  contents: read
+jobs:
+  original-shared-sources:
+    runs-on: macos-latest
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [before, after]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+      - name: Build original shared source lists
+        run: bash .github/scripts/208-macos-ci.sh "${{ matrix.variant }}"
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-208-macos-shared-${{ matrix.variant }}
+          path: ${{ runner.temp }}/ds9-208-macos-${{ matrix.variant }}/logs/
+          retention-days: 7
+  normal-build:
+    runs-on: macos-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Install upstream dependencies
+        env:
+          DS9_BUILD_OS: macos-latest
+        run: source .github/scripts/setup.sh
+      - name: Configure normal application
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '12.0'
+          CFLAGS: -mmacosx-version-min=12.0
+          CXXFLAGS: -mmacosx-version-min=12.0
+          LDFLAGS: -mmacosx-version-min=12.0
+        run: macos/configure
+      - name: Build normal application
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '12.0'
+          CFLAGS: -mmacosx-version-min=12.0
+          CXXFLAGS: -mmacosx-version-min=12.0
+          LDFLAGS: -mmacosx-version-min=12.0
+        run: |
+          if make JOBS=4 > macos-normal-build.log 2>&1; then
+            find bin -type f -name ds9 -exec file {} +
+          else
+            tail -n 80 macos-normal-build.log
+            exit 1
+          fi
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-208-macos-normal
+          path: |
+            macos-normal-build.log
+          retention-days: 7
