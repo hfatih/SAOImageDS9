@@ -13,7 +13,7 @@ env = os.environ.copy()
 env['DS9_MENU_RESULT'] = str(output / 'results.txt')
 env['DS9_MENU_CAPTURE'] = '1'
 with (output / 'stdout.log').open('w') as stdout, (output / 'stderr.log').open('w') as stderr:
-    app = subprocess.Popen([str(program), '-prefs', 'no', '-source', str(script)],
+    app = subprocess.Popen([str(program), '-prefs', 'no', '-xpa', 'no', '-samp', 'no', '-source', str(script)],
                            env=env, stdout=stdout, stderr=stderr)
     try:
         deadline = time.monotonic() + 120
